@@ -1,10 +1,12 @@
 package Main;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 
 public class Form extends javax.swing.JFrame {
@@ -17,6 +19,11 @@ public class Form extends javax.swing.JFrame {
     }
 
     @SuppressWarnings("unchecked")
+
+    public void nuevo() {
+        nombreCarrera.setText("");
+        nombreCarrera.requestFocus();
+    }
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
@@ -79,6 +86,11 @@ public class Form extends javax.swing.JFrame {
         jPanel2.setBackground(new java.awt.Color(102, 102, 102));
 
         btnAgregar.setText("CREAR REGISTRO");
+        btnAgregar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnAgregarActionPerformed(evt);
+            }
+        });
 
         btnTraer.setText("MOSTRAR REGISTROS");
         btnTraer.addActionListener(new java.awt.event.ActionListener() {
@@ -88,6 +100,11 @@ public class Form extends javax.swing.JFrame {
         });
 
         btnModificar.setText("ACTUALIZAR REGISTRO");
+        btnModificar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnModificarActionPerformed(evt);
+            }
+        });
 
         btnEliminar.setText("ELIMINAR REGISTRO");
 
@@ -126,6 +143,11 @@ public class Form extends javax.swing.JFrame {
                 "ID", "Nombre de Carrera"
             }
         ));
+        TablaDatos.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                TablaDatosMouseClicked(evt);
+            }
+        });
         jScrollPane1.setViewportView(TablaDatos);
 
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
@@ -168,9 +190,44 @@ public class Form extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 //______________________________________________________________________________________________
 
-    //Mostrar los registros
-    private void btnTraerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnTraerActionPerformed
+    //Creamos registro
+    public void agregar(String nombreCarrera) {
 
+        //Definir la sentencia sql para insertar una nueva carrera
+        String sql = "INSERT INTO carreras (nombrecarrera) VALUES(?)";
+
+        //Crearmos una instancia de la clase Main para establecer la conexion a la software de gestión
+        Main con = new Main();
+
+        Connection conexion = con.establecerConeccion();
+
+        try {
+            //Preparar la sentencia sql para su ejecución
+            PreparedStatement preparedStatement = conexion.prepareStatement(sql);
+
+            preparedStatement.setString(1, nombreCarrera);
+
+            //Ejecutar la sentencia sql y obtener el número de filas afectadas
+            int filasAfectadas = preparedStatement.executeUpdate();
+
+            if (filasAfectadas > 0) {
+                JOptionPane.showMessageDialog(null, "Carrera agregada exitosamente!");
+            } else {
+                JOptionPane.showMessageDialog(null, "No se ha podido agregar la nueva carrera!");
+            }
+
+            //Cerrar la declaración preparada
+            preparedStatement.close();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    //____________________________________________________________________________________________
+    //Lógica
+    public void mostrar() {
         //Definir la sentencia SQL para seleccionar todos los registros de la tabla carreras
         String sql = "SELECT * FROM carreras";
 
@@ -214,7 +271,103 @@ public class Form extends javax.swing.JFrame {
             e.printStackTrace();
         }
 
+    }
+    //_______________________________________________________________________________________
+
+    //Actualizar registros
+    public int obtenerIdSeleccionado() {
+        //Obtener la fila seleccionada en la tabla
+        int filaSeleccionada = TablaDatos.getSelectedRow();
+
+        if (filaSeleccionada == -1) {
+            JOptionPane.showMessageDialog(null, "Debe seleccionar una fila de la tabla");
+            return -1; //Retornar un valor negativo para indicar que no se selecciono nada
+        }
+        int id = (int) TablaDatos.getValueAt(filaSeleccionada, 0);
+
+        return id;
+    }
+
+    public void modificar() {
+        //Obtener el nuevo nombre de carrera desde un campo de texto
+
+        String nuevoNombre = nombreCarrera.getText();
+
+        //Verificar si se proporcionó un nuevo nombre
+        if (nuevoNombre.isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Debe ingresar un nuevo nombre de carrera");
+        } else {
+            Main con = new Main();
+            Connection conexion = con.establecerConeccion();
+
+            if (conexion != null) {
+                try {
+                    int idSeleccionado = obtenerIdSeleccionado();
+
+                    if (idSeleccionado != -1) {
+                        String sql = "UPDATE carreras SET  nombrecarrera = ? WHERE id = ?";
+
+                        PreparedStatement preparedStatement = conexion.prepareStatement(sql);
+
+                        preparedStatement.setString(1, nuevoNombre);
+
+                        preparedStatement.setInt(2, idSeleccionado);
+
+                        //Ejecutamos la actualizacion
+                        int filasAfectadas = preparedStatement.executeUpdate();
+
+                        if (filasAfectadas > 0) {
+                            //La actualización fue exitosa
+                            JOptionPane.showMessageDialog(null, "Nombre de la carrera, modificado exitosamente");
+                        } else {
+                            JOptionPane.showMessageDialog(null, "No se pudo modificar la carrera");
+                        }
+                        //Cerrar la conexión
+                        conexion.close();
+                    }
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }else{
+                JOptionPane.showMessageDialog(null, "No se pudo establecer conexión");
+            }
+        }
+    }
+
+    //________________________________________________________________________________________
+    //Mostrar los registros
+    private void btnTraerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnTraerActionPerformed
+
+        mostrar();
+
     }//GEN-LAST:event_btnTraerActionPerformed
+
+    private void btnAgregarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAgregarActionPerformed
+        String nombre = nombreCarrera.getText();
+
+        agregar(nombre);
+        mostrar();
+        nuevo();
+    }//GEN-LAST:event_btnAgregarActionPerformed
+
+    private void btnModificarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnModificarActionPerformed
+        modificar();
+        mostrar();
+        nuevo();
+    }//GEN-LAST:event_btnModificarActionPerformed
+
+    private void TablaDatosMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_TablaDatosMouseClicked
+        int fila = TablaDatos.getSelectedRow();
+        
+        if( fila == -1){
+            JOptionPane.showMessageDialog(null, "Carrera no seleccionada");
+        }else{
+            int id = Integer.parseInt((String) TablaDatos.getValueAt(fila, 0).toString());
+            String nom = (String) TablaDatos.getValueAt(fila, 1);
+             idCarrera.setText(" " + id);
+             nombreCarrera.setText(nom);
+        }
+    }//GEN-LAST:event_TablaDatosMouseClicked
 
     //_________________________________________________________________________________________
     public static void main(String args[]) {

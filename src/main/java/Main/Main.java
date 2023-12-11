@@ -24,7 +24,7 @@ public class Main {
         try {
 
             conectar = DriverManager.getConnection(cadena, usuario, contrasena);
-            JOptionPane.showMessageDialog(null, "Se generó la conexión");
+//            JOptionPane.showMessageDialog(null, "Se generó la conexión");
 
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, "No se generó la conexión" + e);
