@@ -107,6 +107,11 @@ public class Form extends javax.swing.JFrame {
         });
 
         btnEliminar.setText("ELIMINAR REGISTRO");
+        btnEliminar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnEliminarActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -227,6 +232,7 @@ public class Form extends javax.swing.JFrame {
 
     //____________________________________________________________________________________________
     //Lógica
+    //Mostramos
     public void mostrar() {
         //Definir la sentencia SQL para seleccionar todos los registros de la tabla carreras
         String sql = "SELECT * FROM carreras";
@@ -328,9 +334,46 @@ public class Form extends javax.swing.JFrame {
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
-            }else{
+            } else {
                 JOptionPane.showMessageDialog(null, "No se pudo establecer conexión");
             }
+        }
+    }
+//_____________________________________________________________________________________
+
+    //Eliminamos registros
+    public void eliminar() {
+        int filaSeleccionada = TablaDatos.getSelectedRow();
+
+        if (filaSeleccionada == -1) {
+            JOptionPane.showMessageDialog(null, "Debe seleccionar una fila");
+        } else {
+            int idEliminar = (int) TablaDatos.getValueAt(filaSeleccionada, 0);
+
+            String sql = "DELETE from carreras where id = " + idEliminar;
+
+            try {
+
+                Main con = new Main();
+
+                Connection conexion = con.establecerConeccion();
+
+                Statement st = conexion.createStatement();
+
+                int filasAfectadas = st.executeUpdate(sql);
+
+                if (filasAfectadas > 0) {
+                    JOptionPane.showMessageDialog(null, "La carrera fue eliminada satisfactoriamente");
+                } else {
+                    JOptionPane.showMessageDialog(null, "No se pudo eliminar la carrera");
+                }
+
+                st.close();
+                conexion.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
         }
     }
 
@@ -358,16 +401,22 @@ public class Form extends javax.swing.JFrame {
 
     private void TablaDatosMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_TablaDatosMouseClicked
         int fila = TablaDatos.getSelectedRow();
-        
-        if( fila == -1){
+
+        if (fila == -1) {
             JOptionPane.showMessageDialog(null, "Carrera no seleccionada");
-        }else{
+        } else {
             int id = Integer.parseInt((String) TablaDatos.getValueAt(fila, 0).toString());
             String nom = (String) TablaDatos.getValueAt(fila, 1);
-             idCarrera.setText(" " + id);
-             nombreCarrera.setText(nom);
+            idCarrera.setText(" " + id);
+            nombreCarrera.setText(nom);
         }
     }//GEN-LAST:event_TablaDatosMouseClicked
+
+    private void btnEliminarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEliminarActionPerformed
+        eliminar();
+        mostrar();
+        nuevo();
+    }//GEN-LAST:event_btnEliminarActionPerformed
 
     //_________________________________________________________________________________________
     public static void main(String args[]) {
